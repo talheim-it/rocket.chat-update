@@ -1,0 +1,5 @@
+---
+
+- hosts: rocketchat.domain.tld
+  roles:
+     - rocket.chat-update

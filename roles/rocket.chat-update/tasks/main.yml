@@ -1,0 +1,63 @@
+---
+- name: check if /opt/Rocket.Chat exists
+  stat: 
+    path: /opt/Rocket.Chat
+  register: dir
+
+- name: stop rocket.chat
+  systemd:
+    name: rocketchat
+    state: stopped
+  become: yes
+
+- name: backup mongodb
+  command: mongodump --out /opt/backups/rocketchatbackup-{{ansible_date_time.date}}
+  become: yes
+
+- name: mv rocket.chat folder to backup
+  command: mv /opt/Rocket.Chat /opt/backups/Rocket.Chat-{{ansible_date_time.date}}
+  become: yes
+  when: dir.stat.exists 
+
+- name: download latest rocket.chat version
+  get_url:
+    url: https://releases.rocket.chat/latest/download
+    dest: /tmp/rocket.chat.tgz
+  become: yes
+
+- name: extract rocket.chat.tgz
+  unarchive:
+    src: /tmp/rocket.chat.tgz
+    dest: /tmp
+    remote_src: yes
+  become: yes
+
+- name: run update and install rocket.chat
+  npm:
+    path: /tmp/bundle/programs/server
+  become: yes
+
+- name: mv folder to /opt/
+  command: mv /tmp/bundle /opt/Rocket.Chat
+  become: yes
+
+- name: change permissions
+  file:
+    path: /opt/Rocket.Chat
+    state: directory
+    recurse: yes
+    owner:  rocketchat
+    group: rocketchat
+  become: yes
+
+- name: start rocket.chat
+  systemd:
+    name: rocketchat
+    state: started
+  become: yes
+
+- name: remove rocket.chat.tar.gz
+  file:
+    path: /tmp/rocket.chat.tgz
+    state: absent
+  become: yes
