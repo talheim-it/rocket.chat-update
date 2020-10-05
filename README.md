@@ -3,6 +3,7 @@ Ansible script to update Rocket.Chat manual installation
 
 Tested with
  - Ubuntu 18.04 Server
+ - Ubuntu 20.04 server
 
 ## Ansible command
 ansible-playbook playbook/rocket-chat-update.yml
